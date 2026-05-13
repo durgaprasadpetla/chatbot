@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Chatbot - Modern UI</title>
+
+<!-- Markdown Renderer -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+/* ---------------------------------------------------- */
+/* BACKGROUND IMAGE + ANIMATION                          */
+/* ---------------------------------------------------- */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  background: url("https://images.unsplash.com/photo-1508780709619-79562169bc64?auto=format&fit=crop&w=1350&q=80") no-repeat center center/cover;
+  backdrop-filter: blur(5px);
+  color: var(--text);
+  transition: 0.3s ease-in-out;
+}
+
+/* Dark mode background */
+.dark-mode {
+  background: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1350&q=80") no-repeat center center/cover;
+}
+
+/* Overlay to soften background */
+.bg-overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.35);
+  top: 0;
+  left: 0;
+  backdrop-filter: blur(6px);
+}
+
+/* ---------------------------------------------------- */
+/* UI COLOR VARIABLES                                   */
+/* ---------------------------------------------------- */
+:root {
+  --glass: rgba(255, 255, 255, 0.20);
+  --glass-dark: rgba(0,0,0,0.25);
+
+  --text: #ffffff;
+  --user-bubble: rgba(255,255,255,0.85);
+  --bot-bubble: rgba(0,255,180,0.85);
+
+  --header-grad: linear-gradient(135deg,#43cea2,#185a9d);
+  --send-grad: linear-gradient(135deg,#43cea2,#185a9d);
+}
+
+/* DARK MODE COLORS */
+.dark-mode {
+  --glass: rgba(0,0,0,0.45);
+  --text: #eaeaea;
+  --user-bubble: rgba(50,150,255,0.8);
+  --bot-bubble: rgba(30,200,120,0.85);
+}
+
+/* ---------------------------------------------------- */
+/* CHAT CONTAINER                                       */
+/* ---------------------------------------------------- */
+.chat-wrapper {
+  position: relative;
+  width: 95%;
+  max-width: 800px;
+  margin: 60px auto;
+  background: var(--glass);
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* ---------------------------------------------------- */
+/* HEADER                                               */
+/* ---------------------------------------------------- */
+.chat-header {
+  padding: 18px 20px;
+  background: var(--header-grad);
+  border-radius: 20px 20px 0 0;
+  color: white;
+  font-size: 22px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle-btn {
+  background: rgba(255,255,255,0.28);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+/* History button */
+.history-btn {
+  background: rgba(255,255,255,0.28);
+  padding: 8px 14px;
+  font-size: 14px;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------- */
+/* CHAT MESSAGES AREA                                   */
+/* ---------------------------------------------------- */
+#chatBox {
+  height: 540px;
+  overflow-y: auto;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Message bubble */
+.msg {
+  max-width: 78%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 17px;
+  line-height: 1.6;
+  animation: fadeIn 0.25s;
+}
+
+.user {
+  margin-left: auto;
+  background: var(--user-bubble);
+  color: #000;
+  border-bottom-right-radius: 4px;
+}
+
+.bot {
+  background: var(--bot-bubble);
+  color: #000;
+  border-bottom-left-radius: 4px;
+  animation: fadeIn 0.35s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Code blocks */
+.msg pre {
+  background: #111;
+  color: #0f0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* ---------------------------------------------------- */
+/* TYPING INDICATOR                                     */
+/* ---------------------------------------------------- */
+.typing {
+  padding-left: 20px;
+  color: #fff;
+  font-style: italic;
+}
+
+/* ---------------------------------------------------- */
+/* INPUT BOX                                            */
+/* ---------------------------------------------------- */
+.input-area {
+  display: flex;
+  padding: 20px;
+  gap: 12px;
+  background: var(--glass-dark);
+  backdrop-filter: blur(10px);
+  border-radius: 0 0 20px 20px;
+}
+
+#userInput {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 17px;
+  background: rgba(255,255,255,0.85);
+}
+
+.send-btn {
+  padding: 0 28px;
+  background: var(--send-grad);
+  border: none;
+  border-radius: 12px;
+  font-size: 18px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,255,200,0.4);
+}
+
+.send-btn:hover {
+  transform: translateY(-2px);
+}
+</style>
+</head>
+
+<body id="body">
+
+<div class="bg-overlay"></div>
+
+<div class="chat-wrapper">
+
+    <div class="chat-header">
+        🤖 AI Intelligent Chat Assistant
+
+        <div style="display:flex; gap:10px;">
+            <a href="/history" class="history-btn">📜 History</a>
+            <button class="toggle-btn" onclick="toggleDarkMode()">🌙</button>
+        </div>
+    </div>
+
+    <div id="chatBox"></div>
+
+    <div id="typingIndicator" class="typing" style="display:none;">
+        Bot is typing...
+    </div>
+
+    <div class="input-area">
+        <input id="userInput" placeholder="Type your message...">
+        <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+
+</div>
+
+<script>
+/* Dark mode toggle */
+function toggleDarkMode() {
+    const active = document.body.classList.toggle("dark-mode");
+    localStorage.setItem("darkMode", active ? "on" : "off");
+}
+
+if (localStorage.getItem("darkMode") === "on") {
+    document.body.classList.add("dark-mode");
+}
+
+/* Append message */
+function appendMessage(text, who) {
+    let div = document.createElement("div");
+    div.className = "msg " + who;
+    div.innerHTML = marked.parse(text);
+    document.getElementById("chatBox").appendChild(div);
+    document.getElementById("chatBox").scrollTop =
+        document.getElementById("chatBox").scrollHeight;
+}
+
+/* Typing indicator */
+function showTyping(b) {
+    document.getElementById("typingIndicator").style.display =
+        b ? "block" : "none";
+}
+
+/* Send message to backend */
+async function sendMessage() {
+    let msg = document.getElementById("userInput").value.trim();
+    if (!msg) return;
+
+    appendMessage(msg, "user");
+    document.getElementById("userInput").value = "";
+    showTyping(true);
+
+    try {
+        let response = await fetch("/api/chat/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({message: msg})
+        });
+
+        let data = await response.json();
+        showTyping(false);
+
+        appendMessage(data.reply, "bot");
+
+    } catch (err) {
+        showTyping(false);
+        appendMessage("⚠️ AI server unreachable.", "bot");
+    }
+}
+
+document.getElementById("userInput")
+.addEventListener("keydown", e => e.key === "Enter" && sendMessage());
+</script>
+</body>
+</html>

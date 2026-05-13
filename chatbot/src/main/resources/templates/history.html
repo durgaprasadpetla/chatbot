@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<title>Chat History - AI Assistant</title>
+
+<style>
+/* ------------------------------------------------ */
+/* BACKGROUND IMAGE                                 */
+/* ------------------------------------------------ */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", Arial, sans-serif;
+    background: url("https://images.unsplash.com/photo-1526378722370-7ad74c48e24f?auto=format&w=1500&q=80")
+        no-repeat center center/cover;
+    backdrop-filter: blur(5px);
+}
+
+/* Dark overlay */
+.overlay {
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* ------------------------------------------------ */
+/* HISTORY CARD (Glass UI)                          */
+/* ------------------------------------------------ */
+.container {
+    width: 90%;
+    max-width: 850px;
+    margin: 50px auto;
+    background: rgba(255,255,255,0.20);
+    padding: 25px;
+    border-radius: 16px;
+    backdrop-filter: blur(15px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    color: white;
+}
+
+/* Header */
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* Action Buttons */
+.top-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    background: linear-gradient(135deg, #43cea2, #185a9d);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    transition: 0.25s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(80,150,255,0.35);
+}
+
+.clear-btn {
+    background: linear-gradient(135deg, #ff4e50, #c31432) !important;
+}
+
+/* ------------------------------------------------ */
+/* CHAT MESSAGE ROWS                                */
+/* ------------------------------------------------ */
+.msg-row {
+    display: flex;
+    margin: 14px 0;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4);
+}
+
+/* Message bubble */
+.msg {
+    background: rgba(255,255,255,0.75);
+    color: #222;
+    padding: 14px;
+    border-radius: 14px;
+    max-width: 70%;
+    line-height: 1.6;
+    backdrop-filter: blur(5px);
+    font-size: 15px;
+}
+
+.user {
+    background: rgba(150,200,255,0.85);
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.bot {
+    background: rgba(180,255,205,0.85);
+    border-bottom-left-radius: 4px;
+}
+
+/* Timestamp */
+.timestamp {
+    font-size: 11px;
+    color: #333;
+    margin-top: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay"></div>
+
+<div class="container">
+    <h2>📜 Chat History</h2>
+
+    <div class="top-actions">
+        <a class="btn" href="/chat">⬅ Back to Chat</a>
+        <button class="btn clear-btn" onclick="clearHistory()">🗑 Clear History</button>
+    </div>
+
+    <div id="historyBox"></div>
+</div>
+
+<script>
+async function loadHistory() {
+    let response = await fetch("/api/chat/history");
+    let messages = await response.json();
+
+    let historyBox = document.getElementById("historyBox");
+    historyBox.innerHTML = "";
+
+    messages.forEach(msg => {
+
+        let row = document.createElement("div");
+        row.className = "msg-row";
+
+        let avatar = document.createElement("img");
+        avatar.className = "avatar";
+
+        let bubble = document.createElement("div");
+        bubble.className = "msg " + msg.role;
+        bubble.innerText = msg.message;
+
+        let time = document.createElement("div");
+        time.className = "timestamp";
+        time.textContent = new Date(msg.timestamp).toLocaleString();
+        bubble.appendChild(time);
+
+        if (msg.role === "user") {
+            avatar.src = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            row.style.flexDirection = "row-reverse";
+        } else {
+            avatar.src = "https://cdn-icons-png.flaticon.com/512/4712/4712100.png";
+        }
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+
+        historyBox.appendChild(row);
+    });
+}
+
+async function clearHistory() {
+    if (!confirm("Are you sure you want to delete all chat history?")) return;
+
+    await fetch("/api/chat/history/clear", { method: "DELETE" });
+    loadHistory();
+}
+
+loadHistory();
+</script>
+
+</body>
+</html>
